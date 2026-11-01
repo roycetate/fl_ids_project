@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Federated GAT-IDS Production Web Dashboard</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    .tab-active {
+      border-bottom: 2px solid #3b82f6;
+      color: #3b82f6;
+      font-weight: 600;
+    }
+    .badge {
+      padding: 0.2rem 0.6rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .dropzone-active {
+      border-color: #3b82f6 !important;
+      background-color: rgba(59, 130, 246, 0.1) !important;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen p-4 sm:p-6 font-sans antialiased">
+  <div class="max-w-7xl mx-auto space-y-6">
+    
+    <!-- Top Header Navigation -->
+    <header class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="badge bg-blue-500/20 text-blue-400 border border-blue-500/30">FastAPI & PyTorch GAT Backend</span>
+          <span id="apiStatusBadge" class="badge bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">API Online</span>
+        </div>
+        <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-white mt-2">
+          Federated GAT Intrusion Detection System
+        </h1>
+        <p class="text-sm text-slate-400">
+          Cross-Enterprise Cyber Threat Analytics & Behavioral $k$-NN Graph Attention Networks
+        </p>
+      </div>
+      <div class="flex items-center gap-3">
+        <div class="text-right hidden sm:block">
+          <p class="text-xs text-slate-400">Global Acc / Weighted F1</p>
+          <p class="text-lg font-bold text-emerald-400">96.47% / 96.60%</p>
+        </div>
+        <button onclick="switchTab('simulator')" class="bg-blue-600 hover:bg-blue-500 text-white font-medium px-4 py-2 rounded-xl transition shadow flex items-center gap-2 text-sm">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          Live Threat Auditor
+        </button>
+      </div>
+    </header>
+
+    <!-- Key KPI Cards Banner -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-sm">
+        <p class="text-xs font-medium text-slate-400">Centralized GAT Model</p>
+        <p class="text-2xl font-bold text-blue-400 mt-1">97.34% <span class="text-xs text-slate-400 font-normal">Acc</span></p>
+        <div class="flex justify-between text-xs mt-2 text-slate-400">
+          <span>Weighted F1: <b class="text-slate-200">97.47%</b></span>
+          <span>Macro F1: <b class="text-slate-200">0.6979</b></span>
+        </div>
+      </div>
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-sm">
+        <p class="text-xs font-medium text-slate-400">Federated Non-IID (&alpha;=0.5)</p>
+        <p class="text-2xl font-bold text-emerald-400 mt-1">96.47% <span class="text-xs text-slate-400 font-normal">Acc</span></p>
+        <div class="flex justify-between text-xs mt-2 text-slate-400">
+          <span>Weighted F1: <b class="text-slate-200">96.60%</b></span>
+          <span>Macro F1: <b class="text-slate-200">0.6215</b></span>
+        </div>
+      </div>
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-sm">
+        <p class="text-xs font-medium text-slate-400">Federated IID Split</p>
+        <p class="text-2xl font-bold text-purple-400 mt-1">95.93% <span class="text-xs text-slate-400 font-normal">Acc</span></p>
+        <div class="flex justify-between text-xs mt-2 text-slate-400">
+          <span>Weighted F1: <b class="text-slate-200">96.13%</b></span>
+          <span>Macro F1: <b class="text-slate-200">0.5835</b></span>
+        </div>
+      </div>
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-sm">
+        <p class="text-xs font-medium text-slate-400">Graph & FL Architecture</p>
+        <p class="text-2xl font-bold text-amber-400 mt-1">5 Clients</p>
+        <div class="flex justify-between text-xs mt-2 text-slate-400">
+          <span>$k$-NN Edges: <b class="text-slate-200">k=10</b></span>
+          <span>Features: <b class="text-slate-200">70-D</b></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Navigation Tabs -->
+    <div class="border-b border-slate-800 flex gap-6 text-sm overflow-x-auto">
+      <button onclick="switchTab('analytics')" id="tab-analytics" class="pb-3 px-1 tab-active transition">Performance Analytics</button>
+      <button onclick="switchTab('simulator')" id="tab-simulator" class="pb-3 px-1 text-slate-400 hover:text-white transition">Live Threat Classifier & CSV Audit</button>
+      <button onclick="switchTab('fl-dist')" id="tab-fl-dist" class="pb-3 px-1 text-slate-400 hover:text-white transition">Federated Learning Monitor</button>
+      <button onclick="switchTab('knn-viz')" id="tab-knn-viz" class="pb-3 px-1 text-slate-400 hover:text-white transition">Behavioral $k$-NN Graph Inspector</button>
+    </div>
+
+    <!-- TAB 1: PERFORMANCE ANALYTICS -->
+    <div id="panel-analytics" class="space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Chart 1: Literature Baseline Comparison -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-sm">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="font-semibold text-lg text-white">Model Comparison vs. Literature</h3>
+              <p class="text-xs text-slate-400">Accuracy (%) and Weighted F1-Score (%) against baseline models</p>
+            </div>
+            <span class="badge bg-slate-800 text-slate-300">Table III</span>
+          </div>
+          <div class="h-64">
+            <canvas id="chartLiterature"></canvas>
+          </div>
+        </div>
+
+        <!-- Chart 2: Model Setting Breakdown -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-sm">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="font-semibold text-lg text-white">Centralized vs. Federated GAT Regimes</h3>
+              <p class="text-xs text-slate-400">Comparing Centralized, Federated IID, and Non-IID performance</p>
+            </div>
+            <span class="badge bg-blue-900/40 text-blue-300">Proposed Models</span>
+          </div>
+          <div class="h-64">
+            <canvas id="chartRegimes"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Table II Class-Wise Breakdown -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-sm overflow-hidden">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+          <div>
+            <h3 class="font-semibold text-lg text-white">Class-Wise Performance Breakdown (Table II)</h3>
+            <p class="text-xs text-slate-400">Performance metrics across all 13 attack categories under sublinear power-scaled loss weighting</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <input type="text" id="classSearch" onkeyup="filterTable()" placeholder="Search attack class..." class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500">
+          </div>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-slate-300" id="classTable">
+            <thead class="bg-slate-800/80 uppercase text-slate-400 border-b border-slate-700">
+              <tr>
+                <th class="py-3 px-4">Attack Class</th>
+                <th class="py-3 px-4">Precision</th>
+                <th class="py-3 px-4">Recall</th>
+                <th class="py-3 px-4">F1 (Centralized)</th>
+                <th class="py-3 px-4">F1 (IID Split)</th>
+                <th class="py-3 px-4">F1 (Non-IID &alpha;=0.5)</th>
+                <th class="py-3 px-4">Status</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800" id="classTableBody">
+              <!-- Dynamically populated via API -->
+            </tbody>
+            <tfoot class="bg-slate-800/90 font-bold border-t border-slate-700 text-white">
+              <tr>
+                <td class="py-3 px-4">Macro Average</td>
+                <td class="py-3 px-4 text-blue-400">0.7295</td>
+                <td class="py-3 px-4 text-blue-400">0.7709</td>
+                <td class="py-3 px-4 text-emerald-400">0.6979</td>
+                <td class="py-3 px-4 text-purple-400">0.5835</td>
+                <td class="py-3 px-4 text-amber-400">0.6215</td>
+                <td class="py-3 px-4"><span class="badge bg-blue-500/20 text-blue-300">Verified</span></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: LIVE THREAT CLASSIFIER & CSV AUDIT -->
+    <div id="panel-simulator" class="hidden space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Interactive Form & Preset Loader -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+          <h3 class="font-semibold text-lg text-white border-b border-slate-800 pb-3">Flow Feature Simulator</h3>
+          
+          <div>
+            <label class="text-xs font-medium text-slate-300">Preset Traffic Profile</label>
+            <select id="presetSelect" onchange="loadPreset()" class="w-full mt-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500">
+              <option value="benign">Standard Benign Traffic</option>
+              <option value="dos_hulk">DoS Hulk Flood</option>
+              <option value="portscan">PortScan Sequence</option>
+              <option value="patator">SSH-Patator Brute-Force</option>
+              <option value="bot">Botnet Command & Control</option>
+            </select>
+          </div>
+
+          <div>
+            <div class="flex justify-between text-xs mb-1">
+              <span class="text-slate-300">Flow Duration (&mu;s)</span>
+              <span class="text-blue-400 font-mono" id="valDuration">1,240</span>
+            </div>
+            <input type="range" id="inputDuration" min="10" max="1000000" value="1240" oninput="updateSliders()" class="w-full">
+          </div>
+
+          <div>
+            <div class="flex justify-between text-xs mb-1">
+              <span class="text-slate-300">Forward Packet Count</span>
+              <span class="text-blue-400 font-mono" id="valPackets">12</span>
+            </div>
+            <input type="range" id="inputPackets" min="1" max="500" value="12" oninput="updateSliders()" class="w-full">
+          </div>
+
+          <div>
+            <div class="flex justify-between text-xs mb-1">
+              <span class="text-slate-300">Average Packet Size (Bytes)</span>
+              <span class="text-blue-400 font-mono" id="valPktLen">142</span>
+            </div>
+            <input type="range" id="inputPktLen" min="20" max="1500" value="142" oninput="updateSliders()" class="w-full">
+          </div>
+
+          <div>
+            <div class="flex justify-between text-xs mb-1">
+              <span class="text-slate-300">IAT Mean (Inter-Arrival Time)</span>
+              <span class="text-blue-400 font-mono" id="valIAT">45.2</span>
+            </div>
+            <input type="range" id="inputIAT" min="0" max="500" value="45" oninput="updateSliders()" class="w-full">
+          </div>
+
+          <button onclick="runGATInferenceAPI()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-2.5 rounded-xl transition shadow flex items-center justify-center gap-2 text-sm">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            Execute REST API Inference
+          </button>
+        </div>
+
+        <!-- Real-Time Prediction Output & CSV Dropzone -->
+        <div class="lg:col-span-2 space-y-6">
+          
+          <!-- Live Prediction Result Card -->
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-sm space-y-6">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div>
+                <h3 class="font-semibold text-lg text-white">GAT Model Prediction & Attention Output</h3>
+                <p class="text-xs text-slate-400">2-Layer Residual GAT Softmax Output & Attention Neighborhood</p>
+              </div>
+              <span id="predStatusBadge" class="badge bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">BENIGN TRAFFIC</span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div class="bg-slate-950 rounded-xl p-4 border border-slate-800">
+                <p class="text-xs text-slate-400">Predicted Attack Label</p>
+                <p class="text-xl font-bold text-white mt-1" id="predClassLabel">BENIGN</p>
+              </div>
+              <div class="bg-slate-950 rounded-xl p-4 border border-slate-800">
+                <p class="text-xs text-slate-400">Softmax Confidence</p>
+                <p class="text-xl font-bold text-emerald-400 mt-1" id="predConfidence">99.42%</p>
+              </div>
+              <div class="bg-slate-950 rounded-xl p-4 border border-slate-800">
+                <p class="text-xs text-slate-400">Malicious Threat Status</p>
+                <p class="text-xl font-bold text-blue-400 mt-1" id="predMaliciousStatus">CLEAR</p>
+              </div>
+            </div>
+
+            <!-- Softmax Distribution Bar -->
+            <div class="space-y-2">
+              <p class="text-xs font-semibold text-slate-300">Top Multi-Class Softmax Probability Distribution</p>
+              <div class="space-y-2" id="softmaxBars">
+                <!-- Dynamically filled -->
+              </div>
+            </div>
+          </div>
+
+          <!-- CSV File Dropzone Card -->
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+            <h3 class="font-semibold text-lg text-white">Batch CSV Traffic File Audit</h3>
+            <p class="text-xs text-slate-400">Upload raw CICIDS2017 CSV flow records for automated batch GAT graph classification</p>
+
+            <div id="dropzone" onclick="document.getElementById('csvFileInput').click()" class="border-2 border-dashed border-slate-700 hover:border-blue-500 rounded-xl p-6 text-center cursor-pointer transition bg-slate-950/60">
+              <svg class="w-10 h-10 mx-auto text-slate-500 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 0115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+              <p class="text-sm font-medium text-slate-300">Click to select CSV or drag & drop file here</p>
+              <p class="text-xs text-slate-500 mt-1">Supports raw tabular flow features (.csv)</p>
+              <input type="file" id="csvFileInput" accept=".csv" class="hidden" onchange="uploadCSVFile(this.files[0])">
+            </div>
+
+            <!-- CSV Results Output -->
+            <div id="csvResultContainer" class="hidden bg-slate-950 rounded-xl p-4 border border-slate-800 space-y-3">
+              <div class="flex justify-between items-center text-xs">
+                <span class="text-slate-400">Audited File: <b id="csvFilename" class="text-white">flows.csv</b></span>
+                <span class="badge bg-blue-500/20 text-blue-400" id="csvTotalFlows">100 Flows</span>
+              </div>
+              <div class="grid grid-cols-3 gap-2 text-center text-xs">
+                <div class="bg-slate-900 p-2 rounded-lg"><p class="text-slate-400">Benign</p><p class="text-sm font-bold text-emerald-400" id="csvBenignCount">85</p></div>
+                <div class="bg-slate-900 p-2 rounded-lg"><p class="text-slate-400">Malicious</p><p class="text-sm font-bold text-rose-400" id="csvMaliciousCount">15</p></div>
+                <div class="bg-slate-900 p-2 rounded-lg"><p class="text-slate-400">Threat Ratio</p><p class="text-sm font-bold text-amber-400" id="csvThreatPct">15.0%</p></div>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+
+    <!-- TAB 3: FEDERATED LEARNING MONITOR -->
+    <div id="panel-fl-dist" class="hidden space-y-6">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <h3 class="font-semibold text-lg text-white">Federated Client Class Skew (&alpha;=0.5 Dirichlet Distribution)</h3>
+            <p class="text-xs text-slate-400">5 Client Enterprise Organizations with realistic Non-IID class concentration</p>
+          </div>
+          <button onclick="simulateFedAvgRoundAPI()" class="bg-purple-600 hover:bg-purple-500 text-white font-medium px-4 py-2 rounded-xl transition shadow flex items-center gap-2 text-xs">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            Simulate FedAvg Communication Round
+          </button>
+        </div>
+
+        <div class="h-80">
+          <canvas id="chartDirichlet"></canvas>
+        </div>
+
+        <!-- Simulation Progress & Log -->
+        <div id="fedSimLog" class="bg-slate-950 rounded-xl p-4 border border-slate-800 text-xs font-mono text-slate-300">
+          <span class="text-purple-400">FedAvg Server Log:</span> Initialized 5 client models under Dirichlet skew (&alpha;=0.5). Ready for round aggregation.
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: k-NN GRAPH INSPECTOR -->
+    <div id="panel-knn-viz" class="hidden space-y-6">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-sm">
+        <h3 class="font-semibold text-lg text-white mb-1">Behavioral $k$-NN Feature Similarity Graph Inspector</h3>
+        <p class="text-xs text-slate-400 mb-4">Nodes represent flow records (70-D vectors); edges connect $k=10$ nearest neighbors in Euclidean distance space ($s_{ij} = \frac{1}{1 + d_{ij}}$)</p>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="bg-slate-950 rounded-xl p-6 border border-slate-800 flex flex-col items-center justify-center text-center relative overflow-hidden">
+            <canvas id="canvasGraph" width="400" height="300" class="w-full h-64"></canvas>
+            <p class="text-xs text-slate-400 mt-2">Interactive $k$-NN Graph Neighborhood ($k=10$)</p>
+          </div>
+          <div class="space-y-4 text-xs text-slate-300">
+            <div class="bg-slate-800/60 rounded-xl p-4 border border-slate-700">
+              <h4 class="font-bold text-white mb-2">Graph Construction Rules</h4>
+              <ul class="space-y-1.5 list-disc list-inside text-slate-400">
+                <li><b class="text-slate-200">Non-Identifier Standard:</b> IP addresses and ports are stripped to ensure cross-enterprise generalization.</li>
+                <li><b class="text-slate-200">Similarity Edge Weight:</b> $s_{ij} = \frac{1}{1 + d_{ij}}$ where $d_{ij}$ is Euclidean distance across 70 normalized features.</li>
+                <li><b class="text-slate-200">GAT Attention Mechanism:</b> $e_{ij} = \text{LeakyReLU}(a^T [W h_i \parallel W h_j \parallel W_e s_{ij}])$.</li>
+              </ul>
+            </div>
+            <div class="bg-slate-800/60 rounded-xl p-4 border border-slate-700">
+              <h4 class="font-bold text-white mb-2">Neighborhood Properties</h4>
+              <div class="grid grid-cols-2 gap-2 text-center">
+                <div class="bg-slate-950 p-2 rounded-lg"><p class="text-slate-400">Avg Degree</p><p class="text-base font-bold text-blue-400">10.0</p></div>
+                <div class="bg-slate-950 p-2 rounded-lg"><p class="text-slate-400">Edge Weights</p><p class="text-base font-bold text-emerald-400">0.12 - 0.95</p></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    let currentFedRound = 1;
+
+    // Tab switching
+    function switchTab(tabId) {
+      ['analytics', 'simulator', 'fl-dist', 'knn-viz'].forEach(id => {
+        document.getElementById(`panel-${id}`).classList.add('hidden');
+        document.getElementById(`tab-${id}`).classList.remove('tab-active');
+        document.getElementById(`tab-${id}`).classList.add('text-slate-400');
+      });
+      document.getElementById(`panel-${tabId}`).classList.remove('hidden');
+      document.getElementById(`tab-${tabId}`).classList.add('tab-active');
+      document.getElementById(`tab-${tabId}`).classList.remove('text-slate-400');
+      
+      if(tabId === 'knn-viz') drawKNNGraph();
+    }
+
+    // Filter Table II
+    function filterTable() {
+      let input = document.getElementById("classSearch").value.toUpperCase();
+      let table = document.getElementById("classTable");
+      let tr = table.getElementsByTagName("tr");
+      for (let i = 1; i < tr.length - 1; i++) {
+        let td = tr[i].getElementsByTagName("td")[0];
+        if (td) {
+          let txtValue = td.textContent || td.innerText;
+          tr[i].style.display = txtValue.toUpperCase().indexOf(input) > -1 ? "" : "none";
+        }
+      }
+    }
+
+    // Preset loader for Live Simulator
+    function loadPreset() {
+      const p = document.getElementById('presetSelect').value;
+      if (p === 'benign') {
+        setSliders(1240, 12, 142, 45);
+      } else if (p === 'dos_hulk') {
+        setSliders(950000, 480, 1400, 2);
+      } else if (p === 'portscan') {
+        setSliders(120, 2, 40, 1);
+      } else if (p === 'patator') {
+        setSliders(45000, 24, 320, 12);
+      } else if (p === 'bot') {
+        setSliders(850000, 60, 210, 120);
+      }
+      runGATInferenceAPI();
+    }
+
+    function setSliders(dur, pkt, len, iat) {
+      document.getElementById('inputDuration').value = dur;
+      document.getElementById('inputPackets').value = pkt;
+      document.getElementById('inputPktLen').value = len;
+      document.getElementById('inputIAT').value = iat;
+      updateSliders();
+    }
+
+    function updateSliders() {
+      document.getElementById('valDuration').innerText = Number(document.getElementById('inputDuration').value).toLocaleString();
+      document.getElementById('valPackets').innerText = document.getElementById('inputPackets').value;
+      document.getElementById('valPktLen').innerText = document.getElementById('inputPktLen').value;
+      document.getElementById('valIAT').innerText = document.getElementById('inputIAT').value;
+    }
+
+    // Call REST API for prediction
+    async function runGATInferenceAPI() {
+      const duration = parseFloat(document.getElementById('inputDuration').value);
+      const packet_count = parseInt(document.getElementById('inputPackets').value);
+      const packet_len_mean = parseFloat(document.getElementById('inputPktLen').value);
+      const iat_mean = parseFloat(document.getElementById('inputIAT').value);
+
+      try {
+        const response = await fetch('/api/predict/flow', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ duration, packet_count, packet_len_mean, iat_mean })
+        });
+        const data = await response.json();
+        
+        if(data && data.prediction) {
+          const pred = data.prediction;
+          document.getElementById('predClassLabel').innerText = pred.predicted_class;
+          document.getElementById('predConfidence').innerText = pred.confidence + "%";
+          document.getElementById('predMaliciousStatus').innerText = pred.is_malicious ? "THREAT DETECTED" : "BENIGN CLEAR";
+          document.getElementById('predMaliciousStatus').className = pred.is_malicious ? "text-xl font-bold text-rose-400 mt-1" : "text-xl font-bold text-emerald-400 mt-1";
+          
+          document.getElementById('predStatusBadge').innerText = pred.predicted_class.toUpperCase();
+          document.getElementById('predStatusBadge').className = pred.is_malicious ? "badge bg-rose-500/20 text-rose-400 border border-rose-500/30" : "badge bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
+
+          let html = "";
+          pred.top_3_predictions.forEach(item => {
+            const barColor = item.class === "BENIGN" ? "bg-emerald-500" : "bg-rose-500";
+            html += `
+              <div>
+                <div class="flex justify-between text-xs text-slate-300 mb-1">
+                  <span>${item.class}</span>
+                  <span class="font-mono">${item.probability}%</span>
+                </div>
+                <div class="w-full bg-slate-800 rounded-full h-2">
+                  <div class="${barColor} h-2 rounded-full" style="width: ${Math.max(item.probability, 2)}%"></div>
+                </div>
+              </div>
+            `;
+          });
+          document.getElementById('softmaxBars').innerHTML = html;
+        }
+      } catch (err) {
+        console.warn("API fallback to local simulation:", err);
+      }
+    }
+
+    // CSV File Upload API
+    async function uploadCSVFile(file) {
+      if(!file) return;
+      const formData = new FormData();
+      formData.append('file', file);
+
+      try {
+        const response = await fetch('/api/predict/csv', {
+          method: 'POST',
+          body: formData
+        });
+        const data = await response.json();
+
+        if(data && data.total_flows_audited) {
+          document.getElementById('csvFilename').innerText = data.filename;
+          document.getElementById('csvTotalFlows').innerText = `${data.total_flows_audited} Flows Audited`;
+          document.getElementById('csvBenignCount').innerText = data.benign_flows;
+          document.getElementById('csvMaliciousCount').innerText = data.malicious_flows;
+          document.getElementById('csvThreatPct').innerText = `${data.malicious_percentage}%`;
+          document.getElementById('csvResultContainer').classList.remove('hidden');
+        }
+      } catch(err) {
+        alert("Error uploading CSV: " + err);
+      }
+    }
+
+    // Simulate FedAvg Round API
+    async function simulateFedAvgRoundAPI() {
+      try {
+        const response = await fetch(`/api/federated/simulate?round_number=${currentFedRound}`, { method: 'POST' });
+        const data = await response.json();
+        
+        if(data) {
+          document.getElementById('fedSimLog').innerHTML = `<span class="text-purple-400">FedAvg Server Log (Round ${data.round}/10):</span> ${data.status} | Global Acc: <b class="text-emerald-400">${data.global_accuracy}%</b> | Weighted-F1: <b class="text-blue-400">${data.global_weighted_f1}%</b> | Loss: ${data.global_loss}`;
+          currentFedRound = currentFedRound >= 10 ? 1 : currentFedRound + 1;
+        }
+      } catch(err) {
+        console.warn("FedAvg API fallback:", err);
+      }
+    }
+
+    // Populate Table II from API
+    async function loadTableIIMetrics() {
+      try {
+        const res = await fetch('/api/metrics');
+        const data = await res.json();
+        if(data && data.class_wise_metrics) {
+          let html = "";
+          data.class_wise_metrics.forEach(row => {
+            let statusBadge = "bg-blue-500/20 text-blue-400";
+            if(row.status === "Optimal") statusBadge = "bg-emerald-500/20 text-emerald-400";
+            else if(row.status === "Rare" || row.status === "Extreme Rare") statusBadge = "bg-rose-500/20 text-rose-400";
+
+            html += `
+              <tr class="hover:bg-slate-800/40">
+                <td class="py-2.5 px-4 font-semibold text-white">${row.class}</td>
+                <td class="py-2.5 px-4">${row.prec}</td>
+                <td class="py-2.5 px-4">${row.rec}</td>
+                <td class="py-2.5 px-4 text-emerald-400 font-medium">${row.f1_cent}</td>
+                <td class="py-2.5 px-4">${row.f1_iid}</td>
+                <td class="py-2.5 px-4 text-amber-400">${row.f1_noniid}</td>
+                <td class="py-2.5 px-4"><span class="badge ${statusBadge}">${row.status}</span></td>
+              </tr>
+            `;
+          });
+          document.getElementById('classTableBody').innerHTML = html;
+        }
+      } catch(err) {
+        console.warn("Metrics API load error:", err);
+      }
+    }
+
+    // Canvas k-NN Graph Inspector
+    function drawKNNGraph() {
+      const canvas = document.getElementById('canvasGraph');
+      if(!canvas) return;
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const center = { x: 200, y: 150, label: "Target Flow (v_i)", color: "#3b82f6" };
+      const neighbors = [
+        { x: 100, y: 70, label: "DDoS (v1)", weight: "0.92", color: "#ef4444" },
+        { x: 290, y: 60, label: "DDoS (v2)", weight: "0.88", color: "#ef4444" },
+        { x: 80, y: 200, label: "DDoS (v3)", weight: "0.85", color: "#ef4444" },
+        { x: 320, y: 220, label: "Benign (vk)", weight: "0.12", color: "#10b981" },
+        { x: 200, y: 260, label: "DoS Hulk (v4)", weight: "0.78", color: "#f59e0b" },
+      ];
+
+      neighbors.forEach(n => {
+        ctx.beginPath();
+        ctx.moveTo(center.x, center.y);
+        ctx.lineTo(n.x, n.y);
+        ctx.strokeStyle = n.weight > 0.5 ? 'rgba(59, 130, 246, 0.6)' : 'rgba(148, 163, 184, 0.3)';
+        ctx.lineWidth = parseFloat(n.weight) * 3;
+        ctx.stroke();
+
+        const midX = (center.x + n.x) / 2;
+        const midY = (center.y + n.y) / 2;
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '10px sans-serif';
+        ctx.fillText(`s_ij=${n.weight}`, midX - 10, midY - 4);
+      });
+
+      neighbors.forEach(n => {
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, 16, 0, 2 * Math.PI);
+        ctx.fillStyle = n.color;
+        ctx.fill();
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        ctx.fillStyle = '#f8fafc';
+        ctx.font = '10px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(n.label, n.x, n.y + 28);
+      });
+
+      ctx.beginPath();
+      ctx.arc(center.x, center.y, 22, 0, 2 * Math.PI);
+      ctx.fillStyle = center.color;
+      ctx.fill();
+      ctx.strokeStyle = '#60a5fa';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 11px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(center.label, center.x, center.y + 36);
+    }
+
+    // On Load Setup
+    window.onload = function() {
+      updateSliders();
+      loadTableIIMetrics();
+      runGATInferenceAPI();
+
+      // Chart 1: Literature Baseline
+      new Chart(document.getElementById('chartLiterature'), {
+        type: 'bar',
+        data: {
+          labels: ['CICIDS2017 Study', 'EdgeDetect', 'Proposed Cent. GAT', 'Proposed Fed Non-IID'],
+          datasets: [
+            { label: 'Accuracy (%)', data: [96.90, 98.00, 97.34, 96.47], backgroundColor: '#3b82f6' },
+            { label: 'Weighted F1 (%)', data: [95.80, 97.90, 97.47, 96.60], backgroundColor: '#10b981' }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: { y: { min: 90, max: 100, ticks: { color: '#94a3b8' }, grid: { color: '#334155' } }, x: { ticks: { color: '#94a3b8' } } },
+          plugins: { legend: { labels: { color: '#f8fafc' } } }
+        }
+      });
+
+      // Chart 2: Regimes
+      new Chart(document.getElementById('chartRegimes'), {
+        type: 'bar',
+        data: {
+          labels: ['Centralized GAT', 'Federated Non-IID (α=0.5)', 'Federated IID'],
+          datasets: [
+            { label: 'Accuracy (%)', data: [97.34, 96.47, 95.93], backgroundColor: '#60a5fa' },
+            { label: 'Weighted F1 (%)', data: [97.47, 96.60, 96.13], backgroundColor: '#34d399' },
+            { label: 'Macro F1 (x100)', data: [69.79, 62.15, 58.35], backgroundColor: '#f59e0b' }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: { y: { min: 50, max: 100, ticks: { color: '#94a3b8' }, grid: { color: '#334155' } }, x: { ticks: { color: '#94a3b8' } } },
+          plugins: { legend: { labels: { color: '#f8fafc' } } }
+        }
+      });
+
+      // Chart 3: Dirichlet Skew
+      new Chart(document.getElementById('chartDirichlet'), {
+        type: 'bar',
+        data: {
+          labels: ['BENIGN', 'DoS Hulk', 'PortScan', 'DDoS', 'Patator', 'Bot/Minority'],
+          datasets: [
+            { label: 'Org A (HQ)', data: [75, 15, 5, 2, 2, 1], backgroundColor: '#ef4444' },
+            { label: 'Org B (DataCenter)', data: [40, 50, 5, 3, 1, 1], backgroundColor: '#f59e0b' },
+            { label: 'Org C (Branch)', data: [35, 5, 55, 2, 2, 1], backgroundColor: '#10b981' },
+            { label: 'Org D (Cloud)', data: [30, 5, 2, 60, 2, 1], backgroundColor: '#3b82f6' },
+            { label: 'Org E (DMZ)', data: [50, 10, 5, 5, 25, 5], backgroundColor: '#8b5cf6' }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: { x: { stacked: true, ticks: { color: '#94a3b8' } }, y: { stacked: true, ticks: { color: '#94a3b8' }, grid: { color: '#334155' } } },
+          plugins: { legend: { labels: { color: '#f8fafc' } } }
+        }
+      });
+    };
+  </script>
+</body>
+</html>

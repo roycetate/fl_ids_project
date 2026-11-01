@@ -1,0 +1,52 @@
+[
+  {
+    "tag": "full_loss-weighted_ce_dropout-0.3_lr-0.01_wd-0.0005",
+    "graphs_dir": "/Users/roycetate/Downloads/fl_ids_project/data/processed/graphs",
+    "loss": "weighted_ce",
+    "dropout": 0.3,
+    "lr": 0.01,
+    "weight_decay": 0.0005,
+    "macro_f1": 0.2787591423958454,
+    "weighted_f1": 0.6992021601005842,
+    "per_class_f1": {
+      "BENIGN": 0.6640008042266579,
+      "Bot": 0.011168711595044135,
+      "DDoS": 0.833972532299188,
+      "DoS GoldenEye": 0.16004389775481276,
+      "DoS Hulk": 0.8753281235856742,
+      "DoS Slowhttptest": 0.1204550879147108,
+      "DoS slowloris": 0.1262640582175598,
+      "Heartbleed": 0.0003497420652268952,
+      "Infiltration": 0.0021344717182497333,
+      "PortScan": 0.7969385867554569,
+      "Web Attack \ufffd Brute Force": 0.03213194868662187,
+      "Web Attack \ufffd Sql Injection": 0.0010808863267879661,
+      "Web Attack \ufffd XSS": 0.0
+    }
+  },
+  {
+    "tag": "full_loss-focal_dropout-0.3_lr-0.01_wd-0.0005",
+    "graphs_dir": "/Users/roycetate/Downloads/fl_ids_project/data/processed/graphs",
+    "loss": "focal",
+    "dropout": 0.3,
+    "lr": 0.01,
+    "weight_decay": 0.0005,
+    "macro_f1": 0.2845305933854284,
+    "weighted_f1": 0.7163037781868352,
+    "per_class_f1": {
+      "BENIGN": 0.6887655896545491,
+      "Bot": 0.016660355925785686,
+      "DDoS": 0.8283381970186924,
+      "DoS GoldenEye": 0.2069915254237288,
+      "DoS Hulk": 0.8799591247896129,
+      "DoS Slowhttptest": 0.13370403134083153,
+      "DoS slowloris": 0.13484403413064763,
+      "Heartbleed": 0.00016504373659019642,
+      "Infiltration": 0.0004420215117135701,
+      "PortScan": 0.7670559018076749,
+      "Web Attack \ufffd Brute Force": 0.007263294422827497,
+      "Web Attack \ufffd Sql Injection": 0.0002579424788272215,
+      "Web Attack \ufffd XSS": 0.03445065176908752
+    }
+  }
+]

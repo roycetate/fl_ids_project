@@ -1,0 +1,121 @@
+{
+  "macro_f1": 0.13702127659574467,
+  "weighted_f1": 0.5744201205263805,
+  "per_class_f1": {
+    "BENIGN": 0.8221276595744681,
+    "Bot": 0.0,
+    "DDoS": 0.0,
+    "DoS Hulk": 0.0,
+    "FTP-Patator": 0.0,
+    "PortScan": 0.0
+  },
+  "classification_report": {
+    "BENIGN": {
+      "precision": 0.6984815618221258,
+      "recall": 0.9989658738366081,
+      "f1-score": 0.8221276595744681,
+      "support": 967.0
+    },
+    "Bot": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1-score": 0.0,
+      "support": 25.0
+    },
+    "DDoS": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1-score": 0.0,
+      "support": 86.0
+    },
+    "DoS Hulk": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1-score": 0.0,
+      "support": 140.0
+    },
+    "FTP-Patator": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1-score": 0.0,
+      "support": 52.0
+    },
+    "PortScan": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1-score": 0.0,
+      "support": 114.0
+    },
+    "accuracy": 0.6979768786127167,
+    "macro avg": {
+      "precision": 0.11641359363702097,
+      "recall": 0.16649431230610134,
+      "f1-score": 0.13702127659574467,
+      "support": 1384.0
+    },
+    "weighted avg": {
+      "precision": 0.4880286634985518,
+      "recall": 0.6979768786127167,
+      "f1-score": 0.5744201205263805,
+      "support": 1384.0
+    }
+  },
+  "confusion_matrix": [
+    [
+      966,
+      0,
+      0,
+      1,
+      0,
+      0
+    ],
+    [
+      25,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      86,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      140,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      52,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      114,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  ],
+  "labels": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5
+  ]
+}

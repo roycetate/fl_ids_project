@@ -1,0 +1,121 @@
+{
+  "macro_f1": 0.1414846947528368,
+  "weighted_f1": 0.5766476920899645,
+  "per_class_f1": {
+    "BENIGN": 0.8213219616204691,
+    "Bot": 0.0,
+    "DDoS": 0.0,
+    "DoS Hulk": 0.027586206896551724,
+    "FTP-Patator": 0.0,
+    "PortScan": 0.0
+  },
+  "classification_report": {
+    "BENIGN": {
+      "precision": 0.6988388969521045,
+      "recall": 0.9958634953464323,
+      "f1-score": 0.8213219616204691,
+      "support": 967.0
+    },
+    "Bot": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1-score": 0.0,
+      "support": 25.0
+    },
+    "DDoS": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1-score": 0.0,
+      "support": 86.0
+    },
+    "DoS Hulk": {
+      "precision": 0.4,
+      "recall": 0.014285714285714285,
+      "f1-score": 0.027586206896551724,
+      "support": 140.0
+    },
+    "FTP-Patator": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1-score": 0.0,
+      "support": 52.0
+    },
+    "PortScan": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1-score": 0.0,
+      "support": 114.0
+    },
+    "accuracy": 0.6972543352601156,
+    "macro avg": {
+      "precision": 0.1831398161586841,
+      "recall": 0.16835820160535775,
+      "f1-score": 0.1414846947528368,
+      "support": 1384.0
+    },
+    "weighted avg": {
+      "precision": 0.5287407610929805,
+      "recall": 0.6972543352601156,
+      "f1-score": 0.5766476920899645,
+      "support": 1384.0
+    }
+  },
+  "confusion_matrix": [
+    [
+      963,
+      0,
+      0,
+      3,
+      0,
+      1
+    ],
+    [
+      25,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      86,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      138,
+      0,
+      0,
+      2,
+      0,
+      0
+    ],
+    [
+      52,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      114,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  ],
+  "labels": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5
+  ]
+}

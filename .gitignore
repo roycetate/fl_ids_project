@@ -1,0 +1,10 @@
+venv/
+__pycache__/
+*.pyc
+.DS_Store
+.Rhistory
+
+# CICIDS2017 raw/processed data is too large for GitHub
+data/raw/
+data/processed/
+data/processed_iid_full/

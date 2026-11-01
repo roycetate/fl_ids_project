@@ -1,0 +1,121 @@
+{
+  "macro_f1": 0.13900965192901868,
+  "weighted_f1": 0.5745702553243343,
+  "per_class_f1": {
+    "BENIGN": 0.8203592814371258,
+    "Bot": 0.0,
+    "DDoS": 0.0,
+    "DoS Hulk": 0.0136986301369863,
+    "FTP-Patator": 0.0,
+    "PortScan": 0.0
+  },
+  "classification_report": {
+    "BENIGN": {
+      "precision": 0.6994894237782641,
+      "recall": 0.9917269906928645,
+      "f1-score": 0.8203592814371258,
+      "support": 967.0
+    },
+    "Bot": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1-score": 0.0,
+      "support": 25.0
+    },
+    "DDoS": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1-score": 0.0,
+      "support": 86.0
+    },
+    "DoS Hulk": {
+      "precision": 0.16666666666666666,
+      "recall": 0.007142857142857143,
+      "f1-score": 0.0136986301369863,
+      "support": 140.0
+    },
+    "FTP-Patator": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1-score": 0.0,
+      "support": 52.0
+    },
+    "PortScan": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1-score": 0.0,
+      "support": 114.0
+    },
+    "accuracy": 0.6936416184971098,
+    "macro avg": {
+      "precision": 0.14435934840748846,
+      "recall": 0.16647830797262028,
+      "f1-score": 0.13900965192901868,
+      "support": 1384.0
+    },
+    "weighted avg": {
+      "precision": 0.5055922009587535,
+      "recall": 0.6936416184971098,
+      "f1-score": 0.5745702553243343,
+      "support": 1384.0
+    }
+  },
+  "confusion_matrix": [
+    [
+      959,
+      2,
+      1,
+      4,
+      1,
+      0
+    ],
+    [
+      25,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      85,
+      1,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      138,
+      0,
+      0,
+      1,
+      0,
+      1
+    ],
+    [
+      51,
+      0,
+      0,
+      1,
+      0,
+      0
+    ],
+    [
+      113,
+      0,
+      1,
+      0,
+      0,
+      0
+    ]
+  ],
+  "labels": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5
+  ]
+}

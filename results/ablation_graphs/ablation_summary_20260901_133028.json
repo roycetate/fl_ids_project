@@ -1,0 +1,20 @@
+[
+  {
+    "tag": "k20_loss-ce_dropout-0.4_lr-0.01_wd-0.0005",
+    "graphs_dir": "data/processed/graphs_k20",
+    "loss": "ce",
+    "dropout": 0.4,
+    "lr": 0.01,
+    "weight_decay": 0.0005,
+    "macro_f1": 0.1414846947528368,
+    "weighted_f1": 0.5766476920899645,
+    "per_class_f1": {
+      "BENIGN": 0.8213219616204691,
+      "Bot": 0.0,
+      "DDoS": 0.0,
+      "DoS Hulk": 0.027586206896551724,
+      "FTP-Patator": 0.0,
+      "PortScan": 0.0
+    }
+  }
+]

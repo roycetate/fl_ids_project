@@ -1,0 +1,56 @@
+[
+  {
+    "tag": "original_loss-ce_dropout-0.6_lr-0.005_wd-0.0005",
+    "graphs_dir": "/Users/roycetate/Downloads/fl_ids_project/data/processed/graphs",
+    "loss": "ce",
+    "dropout": 0.6,
+    "lr": 0.005,
+    "weight_decay": 0.0005,
+    "macro_f1": 0.13710477810860627,
+    "weighted_f1": 0.5747701752789982,
+    "per_class_f1": {
+      "BENIGN": 0.8226286686516376,
+      "Bot": 0.0,
+      "DDoS": 0.0,
+      "DoS Hulk": 0.0,
+      "FTP-Patator": 0.0,
+      "PortScan": 0.0
+    }
+  },
+  {
+    "tag": "original_loss-weighted_ce_dropout-0.6_lr-0.005_wd-0.0005",
+    "graphs_dir": "/Users/roycetate/Downloads/fl_ids_project/data/processed/graphs",
+    "loss": "weighted_ce",
+    "dropout": 0.6,
+    "lr": 0.005,
+    "weight_decay": 0.0005,
+    "macro_f1": 0.12990824042268082,
+    "weighted_f1": 0.3704303312159795,
+    "per_class_f1": {
+      "BENIGN": 0.5082508250825083,
+      "Bot": 0.019417475728155338,
+      "DDoS": 0.08869179600886919,
+      "DoS Hulk": 0.040268456375838924,
+      "FTP-Patator": 0.10572687224669604,
+      "PortScan": 0.017094017094017096
+    }
+  },
+  {
+    "tag": "original_loss-focal_dropout-0.6_lr-0.005_wd-0.0005",
+    "graphs_dir": "/Users/roycetate/Downloads/fl_ids_project/data/processed/graphs",
+    "loss": "focal",
+    "dropout": 0.6,
+    "lr": 0.005,
+    "weight_decay": 0.0005,
+    "macro_f1": 0.08720529492244762,
+    "weighted_f1": 0.1771500222568276,
+    "per_class_f1": {
+      "BENIGN": 0.22671353251318102,
+      "Bot": 0.02112676056338028,
+      "DDoS": 0.09665427509293681,
+      "DoS Hulk": 0.08873720136518772,
+      "FTP-Patator": 0.09,
+      "PortScan": 0.0
+    }
+  }
+]

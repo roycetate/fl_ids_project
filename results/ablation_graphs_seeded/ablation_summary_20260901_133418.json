@@ -1,0 +1,20 @@
+[
+  {
+    "tag": "stratified_loss-ce_dropout-0.3_lr-0.01_wd-0.0005",
+    "graphs_dir": "data/processed/graphs_stratified",
+    "loss": "ce",
+    "dropout": 0.3,
+    "lr": 0.01,
+    "weight_decay": 0.0005,
+    "macro_f1": 0.14013660407972897,
+    "weighted_f1": 0.5728466064359603,
+    "per_class_f1": {
+      "BENIGN": 0.8178311187312474,
+      "Bot": 0.0,
+      "DDoS": 0.022988505747126436,
+      "DoS Hulk": 0.0,
+      "FTP-Patator": 0.0,
+      "PortScan": 0.0
+    }
+  }
+]

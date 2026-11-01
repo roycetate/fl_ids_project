@@ -1,0 +1,20 @@
+[
+  {
+    "tag": "oversampled_loss-ce_dropout-0.4_lr-0.01_wd-0.0005",
+    "graphs_dir": "data/processed/graphs_oversampled",
+    "loss": "ce",
+    "dropout": 0.4,
+    "lr": 0.01,
+    "weight_decay": 0.0005,
+    "macro_f1": 0.11128162089948768,
+    "weighted_f1": 0.29752778763182813,
+    "per_class_f1": {
+      "BENIGN": 0.40266469282013323,
+      "Bot": 0.03215434083601286,
+      "DDoS": 0.08287292817679558,
+      "DoS Hulk": 0.0,
+      "FTP-Patator": 0.04240282685512368,
+      "PortScan": 0.10759493670886076
+    }
+  }
+]
