@@ -1,223 +1,201 @@
 # FL-IDS: Closed-Loop Explainable Federated Learning for Cyber Threat Detection
 
-Data preprocessing pipeline (Phase 1) for the project *"A Closed-Loop
-Explainable Federated Learning Framework for Real-Time Cross-Enterprise
-Cyber Threat Detection and Autonomous Incident Response."*
+A research prototype for **cross-enterprise network intrusion detection**. It trains a Graph Attention Network (GAT) on CICIDS2017 flow features, either in one place (centralized) or across simulated organizations with Flower FedAvg (federated), then serves predictions from a local web dashboard.
 
-This phase takes raw CICIDS2017 traffic captures and produces clean,
-scaled, per-organization data shards ready to feed into the Federated
-Learning + GAT training stage (Phase 2).
+The full title of the work is *A Closed-Loop Explainable Federated Learning Framework for Real-Time Cross-Enterprise Cyber Threat Detection and Autonomous Incident Response.*
 
-## 1. Project layout
+## What this project does
+
+Raw CICIDS2017 CSVs are cleaned, scaled, and split into per-organization shards. Each shard is turned into **k-NN similarity graphs** (a flow is a node; edges connect behaviorally similar flows). A GAT classifies each flow into one of 13 CICIDS2017 classes (BENIGN plus attack types such as DoS Hulk, PortScan, DDoS, Bot, web attacks).
+
+Federated training keeps each “organization” on its own graphs and only shares model weights. A FastAPI app lets you inspect metrics, simulate FedAvg rounds, and score uploaded flow CSVs.
+
+On the full CICIDS2017 MachineLearningCSV set (CPU runs in `results/full/`):
+
+| Setting | Accuracy | Weighted-F1 | Macro-F1 |
+|---|---:|---:|---:|
+| Centralized GAT | 0.9734 | 0.9747 | 0.6979 |
+| Federated IID | 0.9593 | 0.9613 | 0.5835 |
+| Federated non-IID (α = 0.5) | 0.9647 | 0.9660 | 0.6215 |
+
+Macro-F1 is lower because rare classes (Heartbleed, SQL injection, XSS) remain hard. Common classes (BENIGN, DDoS, DoS Hulk, PortScan) score much higher. Details are in `results/experiment_summary.md`.
+
+## Repo layout
 
 ```
 fl_ids_project/
-├── config.py                     # all paths & settings live here
-├── requirements.txt
-├── data/
-│   ├── raw/                      # <-- put the downloaded CICIDS2017 CSVs here
-│   └── processed/
-│       ├── artifacts/            # scaler.pkl, label_encoder.pkl, test_set.npz
-│       ├── clients/               # client_0.npz ... client_N.npz (FL shards)
-│       └── graphs/                # client_i_batch_j.npz, test_batch_j.npz (GAT-ready graphs)
+├── config.py                 # paths, FL clients, GAT hyperparameters
+├── requirements.txt          # training stack (pandas, torch, Flower, …)
+├── app/
+│   ├── run_app.py            # launch dashboard + API
+│   ├── backend/              # FastAPI inference and metrics
+│   └── frontend/             # single-page UI
 ├── src/
-│   ├── data_preprocessing/
-│   │   ├── load_data.py          # find + load raw CSVs
-│   │   ├── clean_data.py         # drop leakage cols, fix inf/NaN, dedupe
-│   │   ├── feature_engineering.py# label encode, split, scale
-│   │   ├── fl_partition.py       # IID / non-IID split across FL clients
-│   │   └── pipeline.py           # orchestrates the full run (entry point)
-│   └── graph_construction/
-│       ├── knn_graph.py          # k-NN feature-similarity graph builder
-│       ├── build_graphs.py       # batches shards + builds/saves graphs (entry point)
-│       └── pyg_loader.py         # loads saved graphs into PyTorch-Geometric Data objects
-└── tests/
-    └── make_dummy_data.py        # generates fake CICIDS2017-shaped CSVs for a smoke test
+│   ├── data_preprocessing/   # load, clean, scale, FL partition
+│   ├── graph_construction/   # k-NN graphs for GAT
+│   ├── models/gat.py         # GAT classifier
+│   └── training/             # centralized, federated, diagnose, ablation
+├── data/
+│   ├── raw/                  # put CICIDS2017 CSVs here (not in git)
+│   └── processed_iid/        # small sample shards + graphs in this repo
+├── results/                  # saved metrics and model checkpoints
+└── tests/make_dummy_data.py  # synthetic CSVs for a pipeline smoke test
 ```
 
-## 2. Setup
+Large CICIDS files (`data/raw/`, `data/processed/`, `data/processed_iid_full/`) are **not** on GitHub. Download them locally as described below.
+
+## Requirements
+
+- Python 3.10+ recommended
+- CPU works; a GPU is faster for full-data GAT training
+- `torch` + `torch-geometric` must match your platform (see [PyG install](https://pytorch-geometric.readthedocs.io/en/latest/install/installation.html) if `pip install -r requirements.txt` fails on those two)
+
+## Setup
 
 ```bash
+git clone https://github.com/roycetate/fl_ids_project.git
+cd fl_ids_project
 python -m venv venv
 source venv/bin/activate        # Windows: venv\Scripts\activate
 pip install -r requirements.txt
+pip install -r app/requirements_app.txt
 ```
 
-(`requirements.txt` also includes packages for later phases — FL training,
-GAT, SHAP, dashboard — so you only need to install once.)
+## Quick start (no real dataset)
 
-## 3. Get the dataset
-
-Download **CICIDS2017** (the `MachineLearningCSV` release — already
-flow-featurized, no need to re-run CICFlowMeter):
-
-- Official: https://www.unb.ca/cic/datasets/ids-2017.html
-- Mirror: search "CICIDS2017" on Kaggle (multiple public mirrors of the
-  same official CSVs)
-
-Place the `.csv` files directly in `data/raw/`. You don't need every day's
-file to run the pipeline — `config.CICIDS2017_FILES` lists all 8 expected
-files, but `load_data.py` will just skip and warn about any that are
-missing, so you can start with 1-2 days while waiting on the rest.
-
-### No dataset yet? Smoke-test with synthetic data
+Smoke-test preprocessing with fake CICIDS-shaped CSVs:
 
 ```bash
 python tests/make_dummy_data.py
 python -m src.data_preprocessing.pipeline
+python -m src.graph_construction.build_graphs
 ```
 
-This generates small fake CSVs that mimic CICIDS2017's shape and quirks
-(leading-space columns, occasional inf/NaN, duplicate rows, class
-imbalance) so you can verify the whole pipeline runs before the real
-~500MB+ dataset is in place. **Delete `data/raw/*.csv` before using real
-data** so the two don't mix.
+Then open the dashboard (uses an untrained GAT unless you load a checkpoint):
 
-## 4. Run the pipeline
+```bash
+python app/run_app.py
+```
+
+- UI: http://127.0.0.1:8000
+- API docs: http://127.0.0.1:8000/docs
+- Health: http://127.0.0.1:8000/api/health
+
+Stop with Ctrl+C.
+
+**Delete `data/raw/*.csv` before using the real dataset** so dummy rows are not mixed in.
+
+## Full pipeline (CICIDS2017)
+
+### 1. Dataset
+
+Download the **CICIDS2017 MachineLearningCSV** release (already flow-featurized):
+
+- Official: https://www.unb.ca/cic/datasets/ids-2017.html
+- Kaggle mirrors of the same official CSVs also work
+
+Put the `.csv` files in `data/raw/`. Expected names (any subset is enough to start; missing files are skipped with a warning):
+
+- `Monday-WorkingHours.pcap_ISCX.csv`
+- `Tuesday-WorkingHours.pcap_ISCX.csv`
+- `Wednesday-workingHours.pcap_ISCX.csv`
+- `Thursday-WorkingHours-Morning-WebAttacks.pcap_ISCX.csv`
+- `Thursday-WorkingHours-Afternoon-Infilteration.pcap_ISCX.csv`
+- `Friday-WorkingHours-Morning.pcap_ISCX.csv`
+- `Friday-WorkingHours-Afternoon-PortScan.pcap_ISCX.csv`
+- `Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv`
+
+### 2. Preprocess
 
 ```bash
 python -m src.data_preprocessing.pipeline
 ```
 
-Optional flags:
+Useful flags:
 
 ```bash
 python -m src.data_preprocessing.pipeline \
-    --num-clients 8 \
+    --num-clients 5 \
     --strategy non_iid \
     --alpha 0.5 \
     --test-size 0.2
 ```
 
-| Flag            | Default (config.py) | Meaning                                                             |
-|-----------------|----------------------|-----------------------------------------------------------------------|
-| `--raw-dir`     | `data/raw`           | where to look for CICIDS2017 CSVs                                    |
-| `--num-clients` | `5`                  | number of simulated organizations for FL                             |
-| `--strategy`    | `non_iid`            | `iid` (even split) or `non_iid` (Dirichlet-skewed, more realistic)   |
-| `--alpha`       | `0.5`                | Dirichlet concentration; lower = more skewed across clients          |
-| `--test-size`   | `0.2`                | fraction held out as a centralized test set for evaluating the global model |
-| `--seed`        | `42`                 | random seed, for reproducibility                                     |
+| Flag | Default | Meaning |
+|---|---|---|
+| `--num-clients` | 5 | simulated organizations |
+| `--strategy` | `non_iid` | `iid` even split, or Dirichlet-skewed `non_iid` |
+| `--alpha` | 0.5 | lower = more label skew across clients |
+| `--test-size` | 0.2 | held-out centralized test set |
+| `--seed` | 42 | reproducibility |
 
-## 5. What the pipeline does
+This writes `data/processed/artifacts/` (scaler, label encoder, test set), `data/processed/clients/client_*.npz`, and related files.
 
-1. **Load** — finds and concatenates whichever CICIDS2017 CSVs are present,
-   normalizing whitespace-inconsistent column names and handling the
-   dataset's occasional latin-1 encoding.
-2. **Clean** — drops identifier/leakage columns (IPs, ports, timestamps,
-   flow IDs), replaces the known `Flow Bytes/s` / `Flow Packets/s`
-   infinities with NaN, drops rows with missing values, removes exact
-   duplicates, drops zero-variance columns.
-3. **Encode** — multi-class label encoding (keeps every attack type
-   distinct — `BENIGN`, `DoS Hulk`, `PortScan`, `DDoS`, `FTP-Patator`,
-   `Bot`, etc. — rather than collapsing to binary attack/benign), so the
-   GAT can do multi-class detection and the severity-assessment stage can
-   key off the specific attack type.
-4. **Split** — stratified train/test split so rare attack classes appear
-   in both.
-5. **Scale** — `StandardScaler` fit on train only, applied to both splits
-   (prevents test-set leakage into the scaler).
-6. **Partition** — splits the training set across `--num-clients`
-   simulated organizations. `non_iid` uses a Dirichlet distribution per
-   class (standard in FL literature) so different "organizations" see
-   different, realistic mixes of attacks — some see mostly port scans,
-   others mostly DDoS, etc. `iid` gives an even random split, useful as a
-   sanity-check baseline before testing under heterogeneity.
-
-## 6. Outputs
-
-- `data/processed/artifacts/scaler.pkl` — fitted `StandardScaler`, reuse
-  for any new data at inference time.
-- `data/processed/artifacts/label_encoder.pkl` — fitted `LabelEncoder`,
-  maps encoded ints back to attack-type strings (needed for SHAP/severity
-  stages later).
-- `data/processed/artifacts/feature_names.txt` — ordered feature column
-  names matching the columns in every `X` array.
-- `data/processed/artifacts/test_set.npz` — centralized `X`, `y` test set
-  for evaluating the global FL model after aggregation.
-- `data/processed/clients/client_0.npz ... client_N.npz` — each
-  organization's local `X`, `y` training shard, load with
-  `np.load("client_0.npz")` → `data["X"]`, `data["y"]`.
-
-## 7. Graph construction (Phase 2)
-
-Turns each client's flat feature shards into graphs for the GAT.
+### 3. Build graphs
 
 ```bash
 python -m src.graph_construction.build_graphs
 ```
 
-Optional flags:
+```bash
+python -m src.graph_construction.build_graphs --k 10 --metric euclidean --batch-size 2000
+```
+
+Each flow is a node. Edges are k nearest neighbors in scaled feature space (IPs/ports were dropped as leakage). Large shards are split into `--batch-size` node graphs so they fit in memory.
+
+Outputs go to `data/processed/graphs/` as `client_*_batch_*.npz` and `test_batch_*.npz`.
+
+### 4. Train
+
+Centralized upper bound (all client graphs together):
 
 ```bash
-python -m src.graph_construction.build_graphs \
-    --k 10 \
-    --metric euclidean \
-    --batch-size 2000
+python -m src.training.train_centralized --loss ce --dropout 0.3 --lr 0.01
 ```
 
-Class-imbalance variants for ablations:
+Federated FedAvg (IID vs non-IID is determined by how you preprocessed; `--strategy` is a label on the run):
 
 ```bash
-python -m src.graph_construction.build_graphs \
-    --out-dir data/processed/graphs_oversampled \
-    --oversample-minority
-
-python -m src.graph_construction.build_graphs \
-    --out-dir data/processed/graphs_stratified \
-    --stratified-batches
+python -m src.training.train_federated --strategy non_iid --rounds 10 --local-epochs 1
 ```
 
-| Flag             | Default (config.py) | Meaning                                                        |
-|------------------|----------------------|------------------------------------------------------------------|
-| `--k`            | `10`                 | neighbors per node in the similarity graph                       |
-| `--metric`       | `euclidean`          | `euclidean` or `cosine` distance over scaled features            |
-| `--batch-size`   | `2000`               | nodes per graph batch (keeps each graph GPU-sized)                |
-| `--oversample-minority` | `False`       | random-duplicate minority training rows within each client before graphing |
-| `--stratified-batches` | `False`        | interleave classes before chunking so rare labels are spread across graph batches |
+Per-class diagnostics and confusion matrices:
 
-**How it works:** each flow is a node. Edges connect a node to its k
-nearest neighbors in scaled-feature space (not by IP/host — those were
-already dropped as leakage-prone during preprocessing, and behavioral
-similarity generalizes better across organizations and unseen attacks).
-The graph is made undirected and deduplicated, with edge weights derived
-from distance (closer = higher weight, in `(0, 1]`).
-
-Because a full client's flows can be very large (hundreds of thousands of
-rows on the real dataset), each client's data is first shuffled and split
-into `--batch-size`-node chunks, and a separate graph is built per chunk.
-This keeps every saved graph a fixed, GPU-friendly size and maps directly
-onto a PyTorch-Geometric `DataLoader` — one `Data` object per batch file —
-rather than requiring one enormous graph in memory.
-
-**Outputs**, in `data/processed/graphs/`:
-- `client_0_batch_0.npz`, `client_0_batch_1.npz`, ... — one file per batch
-  per client, each containing `x` (node features), `y` (labels),
-  `edge_index` (2×E, PyG convention), `edge_weight` (E,).
-- `test_batch_0.npz`, ... — same, for the centralized test set.
-
-**Loading for training** (needs `torch` + `torch-geometric`, not required
-for graph construction itself):
-
-```python
-from src.graph_construction.pyg_loader import load_client_graphs
-from torch_geometric.loader import DataLoader
-
-graphs = load_client_graphs("data/processed/graphs", "client_0")
-loader = DataLoader(graphs, batch_size=4, shuffle=True)
+```bash
+python -m src.training.diagnose
+python -m src.training.diagnose --checkpoint results/full/centralized_ce_d03_lr001/centralized_model.pt --no-plot
 ```
 
-> **Note:** this repo's sandbox has no `torch`/`torch-geometric` installed
-> (and no network access to add them), so graph construction was verified
-> with structural checks — symmetry, no self-loops, no duplicate edges,
-> valid node indices, valid edge weights, sane degree distribution — but
-> an actual GAT forward pass hasn't been run yet. Install `torch` +
-> `torch-geometric` in your own (GPU) environment for Phase 3.
+Loss / hyperparameter ablation:
 
-## 8. Next steps (Phase 3+)
+```bash
+python -m src.training.run_ablation --losses ce weighted_ce focal
+```
 
-- Define the GAT model architecture (`GATConv` layers) and train it on the
-  batched graphs above, using `x`, `edge_index`, `edge_weight`.
-- Wire the per-client graph batches into Flower `NumPyClient` objects for
-  the federated training loop (FedAvg across `client_0` ... `client_N`).
-- SHAP explainability, severity scoring, and the response engine plug in
-  after a trained global model exists.
+Checkpoints and JSON metrics land under `results/`. Paths, epochs, learning rate, dropout, and FL rounds can also be edited in `config.py`.
+
+## Web application
+
+```bash
+python app/run_app.py
+```
+
+The UI talks to:
+
+| Endpoint | Purpose |
+|---|---|
+| `GET /` | dashboard |
+| `GET /api/health` | engine + device |
+| `GET /api/metrics` | reported model and class metrics |
+| `POST /api/predict/flow` | score one flow (70-D vector or slider fields) |
+| `POST /api/predict/csv` | upload a numeric flow CSV (first 100 rows) |
+| `GET /api/federated/clients` | simulated client mix |
+| `POST /api/federated/simulate?round_number=1` | one FedAvg round demo |
+
+## Configuration
+
+Edit `config.py` for data paths, number of FL clients, Dirichlet α, k-NN `k`, GAT width/heads/dropout, loss (`ce`, `weighted_ce`, `focal`), epochs, and Flower rounds.
+
+## License / data
+
+CICIDS2017 is distributed by the Canadian Institute for Cybersecurity. This repo does not redistribute the original captures; obtain them from UNB and keep them in `data/raw/` locally.
